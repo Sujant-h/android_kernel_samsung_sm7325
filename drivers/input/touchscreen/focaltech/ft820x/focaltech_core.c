@@ -386,6 +386,17 @@ static void fts_show_touch_buffer(u8 *data, int datalen)
 	}
 }
 
+#if FTS_MT_PROTOCOL_B_EN
+/*
+ * Contacts the firmware flagged as palm at least once. AOSP ignores the
+ * Samsung BTN_PALM key; InputReader cancels a pointer only when its slot
+ * reports ABS_MT_TOOL_TYPE == MT_TOOL_PALM. Keep the palm tool type until
+ * the contact is lifted, so a palm that turns back into a "finger" is not
+ * delivered again as a new touch.
+ */
+static unsigned long fts_palm_latched;
+#endif
+
 void fts_release_all_finger(void)
 {
 	struct fts_ts_data *ts_data = fts_data;
@@ -428,6 +439,9 @@ void fts_release_all_finger(void)
 	ts_data->touchs = 0;
 	ts_data->key_state = 0;
 	ts_data->palm_flag = 0;
+#if FTS_MT_PROTOCOL_B_EN
+	fts_palm_latched = 0;
+#endif
 	mutex_unlock(&ts_data->report_mutex);
 }
 
@@ -513,7 +527,11 @@ static int fts_input_report_b(struct fts_ts_data *data)
 		input_mt_slot(data->input_dev, events[i].id);
 
 		if (EVENT_DOWN(events[i].flag)) {
-			input_mt_report_slot_state(data->input_dev, MT_TOOL_FINGER, true);
+			if (events[i].palm)
+				fts_palm_latched |= BIT(events[i].id);
+			input_mt_report_slot_state(data->input_dev,
+					(fts_palm_latched & BIT(events[i].id)) ?
+					MT_TOOL_PALM : MT_TOOL_FINGER, true);
 
 #if FTS_REPORT_PRESSURE_EN
 			if (events[i].p <= 0) {
@@ -561,6 +579,7 @@ static int fts_input_report_b(struct fts_ts_data *data)
 			location_detect(data, loc, events[i].x, events[i].y);
 
 			data->palm_flag &= ~BIT(events[i].id);
+			fts_palm_latched &= ~BIT(events[i].id);
 			input_report_key(data->input_dev, BTN_PALM, data->palm_flag);
 
 #if !IS_ENABLED(CONFIG_SAMSUNG_PRODUCT_SHIP)
@@ -586,6 +605,7 @@ static int fts_input_report_b(struct fts_ts_data *data)
 				input_mt_slot(data->input_dev, i);
 				input_mt_report_slot_state(data->input_dev, MT_TOOL_FINGER, false);
 				data->palm_flag &= ~BIT(i);
+				fts_palm_latched &= ~BIT(i);
 				input_report_key(data->input_dev, BTN_PALM, data->palm_flag);
 			}
 		}
@@ -1023,6 +1043,7 @@ static int fts_input_set_prop(struct fts_ts_data *ts_data, struct input_dev *inp
 		input_mt_init_slots(input_dev, ts_data->pdata->max_touch_number, INPUT_MT_DIRECT);
 	else
 		input_mt_init_slots(input_dev, ts_data->pdata->max_touch_number, INPUT_MT_POINTER);
+	input_set_abs_params(input_dev, ABS_MT_TOOL_TYPE, MT_TOOL_FINGER, MT_TOOL_PALM, 0, 0);
 #else
 	input_set_abs_params(input_dev, ABS_MT_TRACKING_ID, 0, 0x0F, 0, 0);
 #endif
