@@ -251,6 +251,14 @@ struct fts_ts_data {
 	/* multi-touch */
 	struct ts_event *events;
 	unsigned long palm_flag;
+	/*
+	 * Slots the firmware flagged as palm at least once. AOSP ignores the
+	 * Samsung BTN_PALM key; InputReader cancels a pointer only when its
+	 * slot reports ABS_MT_TOOL_TYPE == MT_TOOL_PALM. Keep the palm tool
+	 * type until the contact is lifted, so a palm that turns back into a
+	 * "finger" is not delivered again as a new touch.
+	 */
+	unsigned long palm_latched;
 	u8 *bus_tx_buf;
 	u8 *bus_rx_buf;
 	int bus_type;
