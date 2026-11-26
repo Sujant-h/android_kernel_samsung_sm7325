@@ -56,7 +56,7 @@ static int get_cirrus_amp_temperature_max(enum amp_id id)
 	value = amp->bd.max_temp >> CIRRUS_BD_TEMP_RADIX;
 	amp->bd.max_temp = 0;
 
-	dev_info(component->dev, "%s: id %d value %d\n", __func__, id, value);
+	dev_dbg(component->dev, "%s: id %d value %d\n", __func__, id, value);
 
 	return value;
 }
@@ -86,7 +86,7 @@ static int get_cirrus_amp_temperature_keep_max(enum amp_id id)
 
 	value = amp->bd.max_temp_keep >> CIRRUS_BD_TEMP_RADIX;
 
-	dev_info(component->dev, "%s: id %d value %d\n", __func__, id, value);
+	dev_dbg(component->dev, "%s: id %d value %d\n", __func__, id, value);
 
 	return value;
 }
@@ -117,7 +117,7 @@ static int get_cirrus_amp_temperature_overcount(enum amp_id id)
 	value = amp->bd.over_temp_count;
 	amp->bd.over_temp_count = 0;
 
-	dev_info(component->dev, "%s: id %d value %d\n", __func__, id, value);
+	dev_dbg(component->dev, "%s: id %d value %d\n", __func__, id, value);
 
 	return value;
 }
@@ -150,7 +150,7 @@ static int get_cirrus_amp_excursion_max(enum amp_id id)
 				10000 / (1 << CIRRUS_BD_EXC_RADIX);
 	amp->bd.max_exc = 0;
 
-	dev_info(component->dev, "%s: id %d value %d\n", __func__, id, value);
+	dev_dbg(component->dev, "%s: id %d value %d\n", __func__, id, value);
 
 	return value;
 }
@@ -181,7 +181,7 @@ static int get_cirrus_amp_excursion_overcount(enum amp_id id)
 	value = amp->bd.over_exc_count;
 	amp->bd.over_exc_count = 0;
 
-	dev_info(component->dev, "%s: id %d value %d\n", __func__, id, value);
+	dev_dbg(component->dev, "%s: id %d value %d\n", __func__, id, value);
 
 	return value;
 }
@@ -209,7 +209,7 @@ static int get_cirrus_amp_curr_temperature(enum amp_id id)
 		return -EINVAL;
 	}
 
-	dev_info(component->dev, "%s: id %d value %d\n", __func__, id, value);
+	dev_dbg(component->dev, "%s: id %d value %d\n", __func__, id, value);
 
 	return value;
 }

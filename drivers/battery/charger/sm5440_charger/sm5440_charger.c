@@ -624,7 +624,7 @@ static int sm5440_chg_get_property(struct power_supply *psy,
 	enum power_supply_ext_property ext_psp =
 		(enum power_supply_ext_property)psp;
 
-	dev_info(sm5440->dev, "%s: psp=%d\n", __func__, psp);
+	dev_dbg(sm5440->dev, "%s: psp=%d\n", __func__, psp);
 
 	switch ((int)psp) {
 	case POWER_SUPPLY_PROP_ONLINE:

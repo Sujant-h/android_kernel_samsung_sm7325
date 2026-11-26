@@ -630,7 +630,7 @@ static int sm5714_chg_get_property(struct power_supply *psy,
 		power_supply_get_drvdata(psy);
 	enum power_supply_ext_property ext_psp = (enum power_supply_ext_property) psp;
 
-	dev_info(charger->dev, "%s: psp=%d\n", __func__, psp);
+	dev_dbg(charger->dev, "%s: psp=%d\n", __func__, psp);
 
 	switch ((int)psp) {
 	case POWER_SUPPLY_PROP_ONLINE:
