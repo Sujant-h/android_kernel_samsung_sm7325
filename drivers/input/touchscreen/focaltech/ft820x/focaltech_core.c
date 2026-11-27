@@ -386,6 +386,16 @@ static void fts_show_touch_buffer(u8 *data, int datalen)
 	}
 }
 
+/*
+ * Report contacts the firmware flags as palm as MT_TOOL_PALM (default). Can be
+ * switched at runtime (/sys/module/focaltech_ts_ft820x/parameters/palm_tool)
+ * to compare behaviour with and without it without rebuilding the kernel.
+ * Turning it off drops the latch, so open contacts are reported as fingers.
+ */
+static bool palm_tool = true;
+module_param(palm_tool, bool, 0644);
+MODULE_PARM_DESC(palm_tool, "Report firmware palm contacts as MT_TOOL_PALM (default: 1)");
+
 void fts_release_all_finger(void)
 {
 	struct fts_ts_data *ts_data = fts_data;
@@ -504,6 +514,10 @@ static int fts_input_report_b(struct fts_ts_data *data)
 	u32 max_touch_num = data->pdata->max_touch_number;
 	struct ts_event *events = data->events;
 	char loc[SEC_TS_LOCATION_DETECT_SIZE] = { 0 };
+	bool palm_tool_on = READ_ONCE(palm_tool);
+
+	if (!palm_tool_on)
+		data->palm_latched = 0;
 
 	for (i = 0; i < data->touch_point; i++) {
 		if (fts_input_report_key(data, i) == 0) {
@@ -522,7 +536,7 @@ static int fts_input_report_b(struct fts_ts_data *data)
 			 */
 			if (events[i].flag == FTS_TOUCH_DOWN)
 				data->palm_latched &= ~BIT(events[i].id);
-			if (events[i].palm)
+			if (palm_tool_on && events[i].palm)
 				data->palm_latched |= BIT(events[i].id);
 			input_mt_report_slot_state(data->input_dev,
 					(data->palm_latched & BIT(events[i].id)) ?
