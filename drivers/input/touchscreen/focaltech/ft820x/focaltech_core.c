@@ -514,6 +514,14 @@ static int fts_input_report_b(struct fts_ts_data *data)
 		input_mt_slot(data->input_dev, events[i].id);
 
 		if (EVENT_DOWN(events[i].flag)) {
+			/*
+			 * A new contact must not inherit the palm state of a
+			 * previous one on the same ID: if the UP of that contact
+			 * was never seen (lost frame), the latch would still be
+			 * set and the new finger would be reported as palm.
+			 */
+			if (events[i].flag == FTS_TOUCH_DOWN)
+				data->palm_latched &= ~BIT(events[i].id);
 			if (events[i].palm)
 				data->palm_latched |= BIT(events[i].id);
 			input_mt_report_slot_state(data->input_dev,
